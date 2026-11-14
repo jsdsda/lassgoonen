@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goon-Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #09090b;
+            color: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            margin-top: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 0.4rem;
+            color: #ef4444;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            color: #a1a1aa;
+            font-size: 0.9rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .timer-box {
+            background-color: #09090b;
+            border: 1px solid #27272a;
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .timer-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #71717a;
+            margin-bottom: 0.5rem;
+        }
+
+        #countdown {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: #22c55e;
+        }
+
+        #countdown.danger {
+            color: #ef4444;
+            animation: pulse 0.8s infinite;
+        }
+
+        .last-time {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            margin-top: 0.6rem;
+        }
+
+        button.main-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        button.main-btn:active {
+            transform: scale(0.97);
+        }
+
+        .custom-time-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #27272a;
+            text-align: left;
+        }
+
+        .custom-time-section label {
+            display: block;
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="datetime-local"] {
+            flex: 1;
+            background-color: #09090b;
+            border: 1px solid #3f3f46;
+            color: #fafafa;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        button.secondary-btn {
+            background-color: #27272a;
+            color: #fafafa;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button.secondary-btn:hover {
+            background-color: #3f3f46;
+        }
+
+        button.test-btn {
+            margin-top: 1.5rem;
+            background: transparent;
+            border: 1px dashed #52525b;
+            color: #71717a;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button.test-btn:hover {
+            color: #d4d4d8;
+            border-color: #a1a1aa;
+        }
+
+        /* Container für die 40 Spam-Nachrichten */
+        #notification-feed {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            left: 15px;
+            max-width: 420px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+            max-height: 85vh;
+            overflow-y: auto;
+            pointer-events: none;
+        }
+
+        .toast {
+            background-color: #dc2626;
+            color: #ffffff;
+            padding: 14px 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.5);
+            border: 1px solid #fca5a5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            animation: slideIn 0.25s ease-out forwards;
+            pointer-events: auto;
+        }
+
+        .toast span.badge {
+            background-color: #7f1d1d;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="notification-feed"></div>
+
+    <div class="container">
+        <h1>Felix du HS<br>geht Mcs fetzten</h1>
+        <p class="subtitle">Nach 3 Tagen ohne Aktivität folgt der Alarm.</p>
+
+        <div class="timer-box">
+            <div class="timer-label">Zeit bis zum 40x Alarm</div>
+            <div id="countdown">72:00:00</div>
+            <div class="last-time" id="last-logged">Noch kein Eintrag vorhanden</div>
+        </div>
+
+        <button class="main-btn" onclick="jetztGegoont()">🔥 Ich habe gerade gegoont</button>
+
+        <div class="custom-time-section">
+            <label for="custom-date">Oder vergangenes Datum/Uhrzeit eintragen:</label>
+            <div class="input-row">
+                <input type="datetime-local" id="custom-date">
+                <button class="secondary-btn" onclick="datumSpeichern()">Speichern</button>
+            </div>
+        </div>
+
+        <button class="test-btn" onclick="alarmAusloesen()">⚠️ 40-Nachrichten-Alarm jetzt testen</button>
+    </div>
+
+    <script>
+        const DREI_TAGE_MS = 3 * 24 * 60 * 60 * 1000;
+        let alarmAktiv = false;
+
+        const sprueche = [
+            "🚨 Felix du HS, geh Mcs fetzten!",
+            "⚠️ Sofort aufhören zu goonen!",
+            "🔥 Ab zu Mcs mit dir!",
+            "📢 Alarm! Es wird Zeit für Mcs!",
+            "🛑 Schluss jetzt mit goonen!"
+        ];
+
+        function ladeZeit() {
+            const gespeichert = localStorage.getItem("letztesGoonDatum");
+            if (!gespeichert) {
+                const jetzt = Date.now();
+                localStorage.setItem("letztesGoonDatum", jetzt);
+                return jetzt;
+            }
+            return parseInt(gespeichert, 10);
+        }
+
+        function jetztGegoont() {
+            const jetzt = Date.now();
+            localStorage.setItem("letztesGoonDatum", jetzt);
+            alarmAktiv = false;
+            document.getElementById("notification-feed").innerHTML = "";
+            updateAnzeige();
+        }
+
+        function datumSpeichern() {
+            const input = document.getElementById("custom-date").value;
+            if (!input) return;
+            const zeitstempel = new Date(input).getTime();
+            if (isNaN(zeitstempel)) return;
+
+            localStorage.setItem("letztesGoonDatum", zeitstempel);
+            alarmAktiv = false;
+            document.getElementById("notification-feed").innerHTML = "";
+            updateAnzeige();
+        }
+
+        function updateAnzeige() {
+            const letztesMal = ladeZeit();
+            const zielZeit = letztesMal + DREI_TAGE_MS;
+            const restZeit = zielZeit - Date.now();
+
+            const datumText = new Date(letztesMal).toLocaleString("de-DE", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            document.getElementById("last-logged").textContent = "Zuletzt gegoont: " + datumText + " Uhr";
+
+            const countdownEl = document.getElementById("countdown");
+
+            if (restZeit <= 0) {
+                countdownEl.textContent = "00:00:00";
+                countdownEl.classList.add("danger");
+                if (!alarmAktiv) {
+                    alarmAktiv = true;
+                    alarmAusloesen();
+                }
+            } else {
+                countdownEl.classList.remove("danger");
+                const stunden = Math.floor(restZeit / (1000 * 60 * 60));
+                const minuten = Math.floor((restZeit % (1000 * 60 * 60)) / (1000 * 60));
+                const sekunden = Math.floor((restZeit % (1000 * 60)) / 1000);
+
+                countdownEl.textContent =
+                    String(stunden).padStart(2, "0") + ":" +
+                    String(minuten).padStart(2, "0") + ":" +
+                    String(sekunden).padStart(2, "0");
+            }
+        }
+
+        // Lauter Sirenen-Alarm über Web Audio API (heftiger Dauerton)
+        function sireneAbspielen() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Wir erzeugen eine laute Sirene, die mehrmals auf- und abschwillt
+                for (let i = 0; i < 5; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    
+                    osc.type = "sawtooth"; // Sehr lauter, agressiver Ton
+                    
+                    const startZeit = ctx.currentTime + (i * 0.4);
+                    
+                    // Frequenz-Modulation (Sirenen-Effekt hoch/runter)
+                    osc.frequency.setValueAtTime(400, startZeit);
+                    osc.frequency.linearRampToValueAtTime(1200, startZeit + 0.2);
+                    osc.frequency.linearRampToValueAtTime(400, startZeit + 0.4);
+                    
+                    gain.gain.setValueAtTime(0.2, startZeit); // Hohe Lautstärke
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.start(startZeit);
+                    osc.stop(startZeit + 0.4);
+                }
+            } catch (e) {}
+        }
+
+        function alarmAusloesen() {
+            const feed = document.getElementById("notification-feed");
+            feed.innerHTML = "";
+
+            if (navigator.vibrate) {
+                navigator.vibrate([500, 200, 500, 200, 800]);
+            }
+
+            // Lauten Sirenen-Alarm starten
+            sireneAbspielen();
+
+            // 40 Nachrichten nacheinander reinballern
+            for (let i = 1; i <= 40; i++) {
+                setTimeout(() => {
+                    const toast = document.createElement("div");
+                    toast.className = "toast";
+                    const spruch = sprueche[i % sprueche.length];
+                    toast.innerHTML = `<span>${spruch}</span><span class="badge">${i}/40</span>`;
+                    feed.prepend(toast);
+                }, i * 100);
+            }
+        }
+
+        // Prüfen, ob die 3 Tage bereits abgelaufen sind, sobald die Seite lädt
+        window.addEventListener('load', () => {
+            const letztesMal = ladeZeit();
+            const zielZeit = letztesMal + DREI_TAGE_MS;
+            if (Date.now() >= zielZeit) {
+                alarmAktiv = true;
+                // Kurze Verzögerung beim Laden, damit der Audio-Context vom Browser zugelassen wird
+                setTimeout(alarmAusloesen, 500);
+            }
+        });
+
+        setInterval(updateAnzeige, 1000);
+        updateAnzeige();
+    </script>
+
+</body>
+</html>
